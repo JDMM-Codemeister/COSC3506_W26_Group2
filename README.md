@@ -7,8 +7,8 @@ Development Model: Agile
   # SETUP POSTGRES DB (port: 5432)
 1. Install Docker Desktop
 2. Open Docker Desktop
-3. docker compose up -d (start container)
-4. docker compose exec db psql -U username -d password (verify db created)
+3. docker compose up -d (In project root directory. To start container)
+4. docker compose exec db psql -U username -d database (verify db created)
 
 # QUIT POSTGRES DB
 1. \q (close postgres)
