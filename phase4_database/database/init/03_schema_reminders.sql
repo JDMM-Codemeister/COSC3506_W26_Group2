@@ -2,6 +2,7 @@
 For adding reminders to database -
 DATE format: '2026-12-25'
 TIME format: '14:30:00'
+
 */
 
 CREATE TABLE reminders(
