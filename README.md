@@ -14,9 +14,9 @@ Development Model: Agile
 8. IF "ng serve" doesn't start app, *npm install -g @angular/cli*
 9. ng serve
 10. use app:
--URL: http://localhost:4200
--Login: Any email with '@' + password 
--Example: test@example.com / password123
+ -URL: http://localhost:4200
+ -Login: Any email with '@' + password 
+ -Example: test@example.com / password123
 
 
 # Instructions to run the app

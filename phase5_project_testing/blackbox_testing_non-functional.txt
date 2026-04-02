@@ -1,0 +1,11 @@
+1. Create new account | pass 
+2. Login with created Account| pass
+3. Logout | pass
+3. Make reminder | pass
+4. Upload PDF | fail | no file shown in dashboard after app says that upload is complete | Assigned: Alex He 
+5. Blur assist on | pass
+6. Blur assist off | pass
+7. Create account using existing email | fail | Same email allowed to be used for account registration | Assigned to: 
+8. Login with unregistered account | fail | access to dashboard granted without registered account | Assigned to: 
+9. Password upon login | fail | one letter passwords accepted | Assigned to:
+10. Reminder delete | fail | reminder will not delete | Assigned to: 
