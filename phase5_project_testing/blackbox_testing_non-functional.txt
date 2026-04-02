@@ -2,7 +2,7 @@
 2. Login with created Account| pass
 3. Logout | pass
 3. Make reminder | pass
-4. Upload PDF | fail | no file shown in dashboard after app says that upload is complete | Assigned: Alex He 
+4. Upload PDF | fail | no file shown in dashboard after app says that upload is complete | Assigned: Alex He | fixed
 5. Blur assist on | pass
 6. Blur assist off | pass
 7. Create account using existing email | fail | Same email allowed to be used for account registration | Assigned to: 
