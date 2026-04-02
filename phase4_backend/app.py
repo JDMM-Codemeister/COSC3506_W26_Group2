@@ -1,4 +1,9 @@
-from flask import Flask, request, jsonify
+# Backend API for COSC3506 Group Project
+# Handles user authentication, file uploads, and reminders
+# Built using Flask + SQLite (SQLAlchemy)
+
+
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
@@ -44,6 +49,9 @@ def home():
     return "Backend running"
 
 
+
+
+# Register a new user
 @app.route("/register", methods=["POST"])
 def register():
     data = request.json
@@ -68,7 +76,7 @@ def register():
         }
     })
 
-
+# Login user
 @app.route("/login", methods=["POST"])
 def login():
     data = request.json
@@ -91,7 +99,7 @@ def login():
     else:
         return jsonify({"message": "login failed"}), 401
 
-
+# Upload file
 @app.route("/upload", methods=["POST"])
 def upload():
     file = request.files["file"]
@@ -110,8 +118,20 @@ def upload():
     db.session.add(new_file)
     db.session.commit()
 
-    return jsonify({"message": "uploaded"})
+    return jsonify({
+        "message": "uploaded",
+        "file": {
+            "materialId": new_file.materialId,
+            "title": new_file.title,
+            "filePath": new_file.filePath,
+            "fileUrl": f"http://127.0.0.1:5000/uploads/{new_file.title}"
+        }
+    })
 
+# Get all files for user
+@app.route("/uploads/<path:filename>")
+def uploaded_file(filename):
+    return send_from_directory(UPLOAD_FOLDER, filename)
 
 @app.route("/files/<int:user_id>")
 def get_files(user_id):
@@ -123,6 +143,7 @@ def get_files(user_id):
             "materialId": f.materialId,
             "title": f.title,
             "filePath": f.filePath,
+            "fileUrl": f"http://127.0.0.1:5000/uploads/{f.title}",
             "uploadedAt": f.uploadedAt.isoformat()
         })
 
