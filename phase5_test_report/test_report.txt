@@ -1,0 +1,50 @@
+COSC-3506
+Group 2
+Cognitive Assistance App Test Report
+Jack Miller, Vishesh Mendiratta, Gyeongsu Park, and Alex He
+03-April-2026 
+
+Abstract
+This document reports the testing done on the Cognitive Assistance App for COSC-3506. Blackbox, non-functional testing was carried out, which revealed several bugs in the applications. These bugs were not able to be fixed before the application was due.
+
+Introduction
+The Cognitive Assistance App is supposed to help people with intellectual disabilities perform reading tasks more effectively, by blurring the user’s screen outside of the current line being read. During the course of testing it was discovered that there were several bugs in the design, mainly centered around login authentication and file uploading. Due to time constraints, these bugs were unable to be resolved, however the main functionality of the application is effective.
+
+Methods and Materials
+Blackbox non-functional testing was used for testing, to simulate the user experience. Testers carried out actions which users would perform, including edge cases. 
+
+Experimental Procedure
+Testers simulated the following scenarios:
+1.	New account creation
+2.	Login using created account
+3.	Logout of account
+4.	Make a reminder
+5.	Upload a PDF
+6.	Turn blur assist on
+7.	Turn blur assist off
+8.	Create account using  existing account’s email
+9.	Login with unregistered account
+10.	Create accounts with short and simple passwords
+11.	Delete a reminder
+
+Results
+The following tables summarizes the results of testing:
+Test	Description |	Assigned to	| Expected Result |	Actual Result |	Remarks
+1	Create account	| Group 2	Account created	Account created	
+2	Login with account |	Group 2	Access granted	Access granted	
+3	Logout	Group 2	User | logged out	User logged out	
+4	Make reminder |	Group 2	Reminder added to list	Reminder added to list	
+5	Upload PDF |	Group 2	PDF added to list	PDF not added to list	Critical
+6	Blur assist on |	Group 2	Blurs screen aside from selected line	Blurs screen aside from selected line	
+7	Blur assist off	| Group 2	Unblurs screen	Unblurs screen	
+8	Create duplicate account |	Group 2	Action should be prohibited 	Action is allowed	
+9	Login unregistered account |	Group 2	Action should be prohibited	Action is allowed	Critical
+10	Create weak password |	Group 2	App should prohibit and force use of complex password	App allows weak passwords	
+11	Delete reminder |	Group 2	Reminder should be removed from list	Reminder unable to be removed from list	
+
+Discussion
+Overall the application functions as it should, however there are a few bugs which currently hinder the user’s experience and pose security threats. The main function of the app is for users to upload their own PDF files that they need help reading. In the application’s current form this is not possible. Also, due to the fact that users can duplicate accounts and login without have appropriate authorization, there is the potential for this gap to be exploited by bad actors.
+
+Conclusion
+In closing, the application is nearly complete but suffers from a few critical bugs, both regarding user experience and application security. These bugs should be resolved before the application is released.
+
