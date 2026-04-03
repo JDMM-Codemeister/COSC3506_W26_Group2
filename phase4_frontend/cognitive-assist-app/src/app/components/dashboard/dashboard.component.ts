@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { DashboardService } from '../../services/dashboard.service';
+import { DashboardFile, DashboardService } from '../../services/dashboard.service';
 
 @Component({
     selector: 'app-dashboard',
@@ -12,8 +12,9 @@ export class DashboardComponent implements OnInit {
     userData: any = { userName: 'User' }; // Default user data
     dashboardData: any = null;
     reminders: any[] = [];
-    files: any[] = [];
+    files: DashboardFile[] = [];
     loading = true;
+    currentUserId: number | null = null;
 
     // Reminder form
     showReminderForm = false;
@@ -38,6 +39,8 @@ export class DashboardComponent implements OnInit {
             return;
         }
 
+        this.currentUserId = this.authService.getCurrentUserId();
+        this.userData.userName = this.authService.getCurrentUserName() || 'User';
         this.loadDashboardData();
     }
 
@@ -47,13 +50,33 @@ export class DashboardComponent implements OnInit {
         this.dashboardService.getDashboardData().subscribe({
             next: (data) => {
                 this.dashboardData = data;
-                this.files = data.files || [];
+                this.userData.userName = this.userData.userName || data.userName || 'User';
                 this.reminders = data.reminders || [];
-                this.loading = false;
+                this.loadFiles();
             },
             error: (error) => {
                 this.loading = false;
                 console.error('Dashboard error:', error);
+            }
+        });
+    }
+
+    // Load uploaded files from backend for current user.
+    loadFiles() {
+        if (!this.currentUserId) {
+            this.files = [];
+            this.loading = false;
+            return;
+        }
+
+        this.dashboardService.getFiles(this.currentUserId).subscribe({
+            next: (files) => {
+                this.files = files;
+                this.loading = false;
+            },
+            error: (error) => {
+                this.loading = false;
+                console.error('File loading error:', error);
             }
         });
     }
@@ -130,14 +153,19 @@ export class DashboardComponent implements OnInit {
             return;
         }
 
+        if (!this.currentUserId) {
+            alert('User session not found. Please log in again.');
+            return;
+        }
+
         this.loading = true;
-        this.dashboardService.uploadPDF(this.selectedFile).subscribe({
+        this.dashboardService.uploadPDF(this.selectedFile, this.currentUserId).subscribe({
             next: (response) => {
-                this.loading = false;
                 alert('PDF uploaded successfully');
                 this.selectedFile = null;
-                // Navigate to PDF reader with the file ID
-                this.router.navigate(['/pdf-reader', 1]);
+                this.loadFiles();
+                // Navigate to PDF reader with the uploaded file ID.
+                this.router.navigate(['/pdf-reader', response.file.id]);
             },
             error: (error) => {
                 this.loading = false;

@@ -7,7 +7,9 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+from werkzeug.utils import secure_filename
 import os
+import uuid
 
 app = Flask(__name__)
 CORS(app)
@@ -19,6 +21,7 @@ db = SQLAlchemy(app)
 
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+ALLOWED_EXTENSIONS = {"pdf"}
 
 
 # Models
@@ -41,6 +44,21 @@ class ReadingMaterial(db.Model):
     content = db.Column(db.Text, nullable=True)
     filePath = db.Column(db.String(255), nullable=False)
     uploadedAt = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+def is_allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def serialize_file(file_record):
+    stored_filename = os.path.basename(file_record.filePath)
+    return {
+        "id": file_record.materialId,
+        "title": file_record.title,
+        "filePath": file_record.filePath,
+        "fileUrl": f"http://127.0.0.1:5000/uploads/{stored_filename}",
+        "uploadedAt": file_record.uploadedAt.isoformat()
+    }
 
 
 # Routes
@@ -102,15 +120,35 @@ def login():
 # Upload file
 @app.route("/upload", methods=["POST"])
 def upload():
-    file = request.files["file"]
-    user_id = request.form.get("user_id")
+    if "file" not in request.files:
+        return jsonify({"message": "No file uploaded"}), 400
 
-    filepath = os.path.join(UPLOAD_FOLDER, file.filename)
+    file = request.files["file"]
+    user_id = request.form.get("user_id", type=int)
+
+    if not user_id:
+        return jsonify({"message": "user_id is required"}), 400
+
+    if file.filename == "":
+        return jsonify({"message": "File name is empty"}), 400
+
+    if not is_allowed_file(file.filename):
+        return jsonify({"message": "Only PDF files are allowed"}), 400
+
+    user = db.session.get(User, user_id)
+    if not user:
+        return jsonify({"message": "User not found"}), 404
+
+    safe_filename = secure_filename(file.filename)
+    name_without_ext, extension = os.path.splitext(safe_filename)
+    unique_filename = f"{name_without_ext}_{uuid.uuid4().hex[:8]}{extension.lower()}"
+
+    filepath = os.path.join(UPLOAD_FOLDER, unique_filename)
     file.save(filepath)
 
     new_file = ReadingMaterial(
         userId=user_id,
-        title=file.filename,
+        title=safe_filename,
         content="",
         filePath=filepath
     )
@@ -120,12 +158,7 @@ def upload():
 
     return jsonify({
         "message": "uploaded",
-        "file": {
-            "materialId": new_file.materialId,
-            "title": new_file.title,
-            "filePath": new_file.filePath,
-            "fileUrl": f"http://127.0.0.1:5000/uploads/{new_file.title}"
-        }
+        "file": serialize_file(new_file)
     })
 
 # Get all files for user
@@ -137,15 +170,7 @@ def uploaded_file(filename):
 def get_files(user_id):
     files = ReadingMaterial.query.filter_by(userId=user_id).all()
 
-    result = []
-    for f in files:
-        result.append({
-            "materialId": f.materialId,
-            "title": f.title,
-            "filePath": f.filePath,
-            "fileUrl": f"http://127.0.0.1:5000/uploads/{f.title}",
-            "uploadedAt": f.uploadedAt.isoformat()
-        })
+    result = [serialize_file(f) for f in files]
 
     return jsonify(result)
 

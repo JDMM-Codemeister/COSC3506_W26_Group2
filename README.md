@@ -5,7 +5,7 @@ Development Model: Agile
 
   # Complete User Instructions   
 1. Go to backend folder | cd phase4_backend
-2. Install dependencies | pip install -r requirement.txt
+2. Install dependencies | pip install -r requirements.txt
 3. Run the server | python app.py
 4. Open new terminal (leave app.py terminal server running)
 5. cd phase4_frontend/cognitive-assist-app
@@ -31,7 +31,7 @@ Example: test@example.com / password123
 
 # backend setup 
 1. Go to backend folder | cd phase4_backend
-2. Install dependencies | pip install -r requirement.txt
+2. Install dependencies | pip install -r requirements.txt
 3. Run the server | python app.py
 
 Backend runs at: 

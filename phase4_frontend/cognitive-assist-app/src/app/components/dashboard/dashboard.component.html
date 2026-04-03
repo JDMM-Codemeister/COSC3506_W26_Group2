@@ -50,8 +50,8 @@
                         </div>
                         <div *ngFor="let file of files" class="file-item">
                             <div class="file-info">
-                                <strong>{{ file.fileName }}</strong>
-                                <small class="d-block">{{ file.uploadDate }}</small>
+                                <strong>{{ file.title }}</strong>
+                                <small class="d-block">{{ file.uploadedAt | date:'yyyy-MM-dd HH:mm' }}</small>
                             </div>
                             <button class="btn btn-sm btn-primary" (click)="openPDF(file.id)">
                                 Read
