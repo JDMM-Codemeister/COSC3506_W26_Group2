@@ -31,19 +31,30 @@ export class PdfReaderComponent implements OnInit {
     }
 
 
-    // Load PDF content from mock API
-    // Need to implement backend would parse PDF and extract text lines
-
+    // Load PDF content from backend API
     loadPDFContent() {
         this.loading = true;
         this.dashboardService.getPDFContent(this.fileId!).subscribe({
             next: (data) => {
                 this.pdfContent = data;
+                if (!this.pdfContent.lines || this.pdfContent.lines.length === 0) {
+                    console.warn('PDF content is empty, using sample data');
+                    this.pdfContent.lines = [
+                        "PDF content could not be loaded.",
+                    ];
+                }
                 this.currentLineIndex = 0;
                 this.loading = false;
             },
             error: (error) => {
                 this.loading = false;
+                this.pdfContent = {
+                    lines: [
+                        "Failed to load PDF content.",
+                        "Backend PDF parsing service may not be available.",
+                        "Please try uploading the PDF again."
+                    ]
+                };
                 console.error('PDF load error:', error);
             }
         });

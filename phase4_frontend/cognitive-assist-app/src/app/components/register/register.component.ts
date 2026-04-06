@@ -46,8 +46,7 @@ export class RegisterComponent {
         this.loading = true;
 
         this.authService.register({
-            firstName: this.firstName,
-            lastName: this.lastName,
+            fullName: `${this.firstName} ${this.lastName}`,
             email: this.email,
             password: this.password
         }).subscribe({
@@ -61,7 +60,14 @@ export class RegisterComponent {
             },
             error: (error) => {
                 this.loading = false;
-                this.error = error.message || 'Registration failed. Please try again.';
+                if (error.error && error.error.message) {
+                    this.error = error.error.message;
+                } else if (error.message) {
+                    this.error = error.message;
+                } else {
+                    this.error = 'Registration failed. Please try again.';
+                }
+                console.error('Registration error:', error);
             }
         });
     }
