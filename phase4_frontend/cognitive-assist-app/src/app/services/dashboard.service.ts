@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 export interface DashboardFile {
@@ -17,59 +17,70 @@ export interface DashboardFile {
 })
 export class DashboardService {
     private apiBaseUrl = environment.apiBaseUrl;
-    private mockDashboardUrl = '/assets/mock/dashboard.json';
-    private mockReminderUrl = '/assets/mock/reminder.json';
-    private mockPdfContentUrl = '/assets/mock/pdf-content.json';
 
-    constructor(private http: HttpClient) { }
-    // Get dashboard data with user's files and reminders
-    getDashboardData(): Observable<any> {
-        return this.http.get<any>(this.mockDashboardUrl);
+    constructor(private http: HttpClient) {
     }
 
-    addReminder(reminder: any): Observable<any> {
-        return this.http.get<any>(this.mockReminderUrl);
+    // Get dashboard data
+    getDashboardData(userId: number): Observable<any> {
+        return of({
+            userName: 'User',
+            reminders: []
+        });
     }
 
-    // Delete reminder by ID
+    // Get files for a user
+    getFiles(userId: number): Observable<DashboardFile[]> {
+        return this.http.get<DashboardFile[]>(`${this.apiBaseUrl}/files/${userId}`).pipe(
+            catchError(error => {
+                console.error('Error getting files:', error);
+                return of([]);
+            })
+        );
+    }
+
+    // Add reminder
+    addReminder(userId: number, reminder: any): Observable<any> {
+        return of({
+            reminder: {
+                id: Math.floor(Math.random() * 1000),
+                ...reminder
+            }
+        });
+    }
+
+    // Delete reminder
     deleteReminder(reminderId: number): Observable<any> {
-        return this.http.delete<any>(`/assets/mock/reminder.json`);
+        return of({ success: true });
     }
 
-    // Upload a PDF file to backend and return normalized file metadata.
-    uploadPDF(file: File, userId: number): Observable<{ message: string; file: DashboardFile }> {
+    // Upload PDF
+    uploadPDF(file: File, userId: number): Observable<any> {
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('user_id', String(userId));
+        formData.append('user_id', userId.toString());
 
-        return this.http.post<any>(`${this.apiBaseUrl}/upload`, formData).pipe(
-            map((response: any) => ({
-                ...response,
-                file: this.mapBackendFile(response.file)
-            }))
+        return this.http.post(`${this.apiBaseUrl}/upload`, formData).pipe(
+            map(response => response),
+            catchError(error => {
+                console.error('Upload error:', error);
+                throw error;
+            })
         );
     }
 
-    // Fetch files from backend and map fields to frontend model.
-    getFiles(userId: number): Observable<DashboardFile[]> {
-        return this.http.get<any[]>(`${this.apiBaseUrl}/files/${userId}`).pipe(
-            map((files: any[]) => files.map((file: any) => this.mapBackendFile(file)))
-        );
-    }
-
-    //Returning mock pdf for now
-    //Need to implement actual pdf parsing and content extraction 
+    // Get PDF content from backend
     getPDFContent(fileId: number): Observable<any> {
-        return this.http.get<any>(this.mockPdfContentUrl);
-    }
-
-    private mapBackendFile(file: any): DashboardFile {
-        return {
-            id: file?.id ?? file?.materialId ?? 0,
-            title: file?.title ?? file?.fileName ?? 'Untitled',
-            filePath: file?.filePath ?? '',
-            fileUrl: file?.fileUrl ?? '',
-            uploadedAt: file?.uploadedAt ?? file?.uploadDate ?? ''
-        };
+        return this.http.get(`${this.apiBaseUrl}/pdf-content/${fileId}`).pipe(
+            catchError(error => {
+                console.error('Error getting PDF content:', error);
+                return of({
+                    success: false,
+                    fileId: fileId,
+                    title: 'Error',
+                    lines: ['Failed to load PDF content']
+                });
+            })
+        );
     }
 }

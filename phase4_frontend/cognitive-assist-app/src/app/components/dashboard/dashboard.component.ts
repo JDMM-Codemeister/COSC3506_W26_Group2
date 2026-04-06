@@ -47,7 +47,7 @@ export class DashboardComponent implements OnInit {
     // Load dashboard data from mock API
     loadDashboardData() {
         this.loading = true;
-        this.dashboardService.getDashboardData().subscribe({
+        this.dashboardService.getDashboardData(this.currentUserId || 0).subscribe({
             next: (data) => {
                 this.dashboardData = data;
                 this.userData.userName = this.userData.userName || data.userName || 'User';
@@ -98,7 +98,7 @@ export class DashboardComponent implements OnInit {
         }
 
         this.addingReminder = true;
-        this.dashboardService.addReminder({
+        this.dashboardService.addReminder(this.currentUserId || 0, {
             title: this.reminderTitle,
             dueDate: this.reminderDate,
             dueTime: this.reminderTime

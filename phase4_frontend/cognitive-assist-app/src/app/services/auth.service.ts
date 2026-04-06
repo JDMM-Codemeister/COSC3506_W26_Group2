@@ -2,13 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 @Injectable({
     providedIn: 'root'
 })
 export class AuthService {
-    private mockLoginUrl = '/assets/mock/login.json';
-    private mockRegisterUrl = '/assets/mock/register.json';
+    private apiBaseUrl = environment.apiBaseUrl;
     private isLoggedInKey = 'is-logged-in';
     private currentUserIdKey = 'current-user-id';
     private currentUserNameKey = 'current-user-name';
@@ -20,12 +20,12 @@ export class AuthService {
             return throwError(() => new Error('Invalid email or password'));
         }
 
-        return this.http.get<any>(this.mockLoginUrl).pipe(
+        return this.http.post<any>(`${this.apiBaseUrl}/login`, credentials).pipe(
             tap(response => {
-                if (response.success) {
+                if (response.message === 'login success') {
                     localStorage.setItem(this.isLoggedInKey, 'true');
                     const userId = response.userId ?? response.user?.userId;
-                    const userName = response.userName ?? response.user?.fullName;
+                    const userName = response.user?.fullName;
 
                     if (userId) {
                         localStorage.setItem(this.currentUserIdKey, String(userId));
@@ -44,7 +44,23 @@ export class AuthService {
             return throwError(() => new Error('Invalid email or password'));
         }
 
-        return this.http.get<any>(this.mockRegisterUrl);
+        return this.http.post<any>(`${this.apiBaseUrl}/register`, credentials).pipe(
+            tap(response => {
+                if (response.message === 'registered') {
+                    localStorage.setItem(this.isLoggedInKey, 'true');
+                    const userId = response.userId ?? response.user?.userId;
+                    const userName = response.user?.fullName ?? '';
+
+                    if (userId) {
+                        localStorage.setItem(this.currentUserIdKey, String(userId));
+                    }
+
+                    if (userName) {
+                        localStorage.setItem(this.currentUserNameKey, userName);
+                    }
+                }
+            })
+        );
     }
 
     //Check if user is logged in

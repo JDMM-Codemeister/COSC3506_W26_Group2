@@ -10,6 +10,7 @@ from datetime import datetime
 from werkzeug.utils import secure_filename
 import os
 import uuid
+from PyPDF2 import PdfReader
 
 app = Flask(__name__)
 CORS(app)
@@ -48,6 +49,23 @@ class ReadingMaterial(db.Model):
 
 def is_allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def extract_pdf_text(filepath):
+    """Extract text from PDF file and split into lines"""
+    try:
+        lines = []
+        with open(filepath, 'rb') as pdf_file:
+            pdf_reader = PdfReader(pdf_file)
+            for page_num in range(len(pdf_reader.pages)):
+                page = pdf_reader.pages[page_num]
+                text = page.extract_text()
+                page_lines = [line.strip() for line in text.split('\n') if line.strip()]
+                lines.extend(page_lines)
+        return lines
+    except Exception as e:
+        print(f"Error extracting PDF: {e}")
+        return []
 
 
 def serialize_file(file_record):
@@ -146,10 +164,13 @@ def upload():
     filepath = os.path.join(UPLOAD_FOLDER, unique_filename)
     file.save(filepath)
 
+    pdf_lines = extract_pdf_text(filepath)
+    content = "\n".join(pdf_lines)
+
     new_file = ReadingMaterial(
         userId=user_id,
         title=safe_filename,
-        content="",
+        content=content,
         filePath=filepath
     )
 
@@ -173,6 +194,24 @@ def get_files(user_id):
     result = [serialize_file(f) for f in files]
 
     return jsonify(result)
+
+
+# Get PDF content by file ID
+@app.route("/pdf-content/<int:file_id>")
+def get_pdf_content(file_id):
+    file = db.session.get(ReadingMaterial, file_id)
+    if not file:
+        return jsonify({"message": "File not found"}), 404
+
+    # Split stored content into lines
+    lines = [line.strip() for line in file.content.split('\n') if line.strip()]
+
+    return jsonify({
+        "success": True,
+        "fileId": file.materialId,
+        "title": file.title,
+        "lines": lines
+    })
 
 
 if __name__ == "__main__":
